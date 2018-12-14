@@ -26,6 +26,7 @@ namespace ConsoleApp1
         {
             int total = 0;
             int ocurrence = 0;
+            int draw = 0;
             while (true)
             {
                 List<Card> deck = new List<Card>();
@@ -54,12 +55,16 @@ namespace ConsoleApp1
                 p1.GetHighestHand(commonCards);
                 p2.GetHighestHand(commonCards);
 
-                if (p1.BestHand.handType == HandType.ROYAL_FLUSH && p2.BestHand.handType == HandType.STRAIGHT_FLUSH)
+                if (p1.BestHand.handType == HandType.ROYAL_FLUSH && p2.BestHand.handType == HandType.TWO_PAIR)
                 {
                     List<int> bestHand = GetBestHandPlayerPosition(new Player[] { p1, p2 });
                     if (bestHand[0] == 0)
                     {
                         ocurrence++;
+                        if (bestHand.Count == 2)
+                        {
+                            draw++;
+                        }
                     } else
                     {
                         Console.WriteLine("FALHOU DEPOIS DE > " + total);
@@ -72,7 +77,7 @@ namespace ConsoleApp1
 
                 if (total == 1000000)
                 {
-                    Console.WriteLine("RODOU 1 MILHAO DE VEZES E NAO FALHOU, TOTAL DE OCORRENCIAS : " + ocurrence);
+                    Console.WriteLine("RODOU 1 MILHAO DE VEZES E NAO FALHOU, TOTAL DE OCORRENCIAS : " + ocurrence + " EMPATES: "+ draw);
                     Console.ReadKey();
                     break;
                 }
