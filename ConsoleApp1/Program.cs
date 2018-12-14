@@ -12,56 +12,77 @@ namespace ConsoleApp1
 
         static void Main(string[] args)
         {
-            List<Card> all =
-                new List<Card>() { new Card(13, Suit.SPADE), new Card(12, Suit.SPADE), new Card(1, Suit.SPADE), new Card(7, Suit.DIAMOND), new Card(9, Suit.HEART),
-                    new Card(1, Suit.SPADE), new Card(10, Suit.SPADE),
-                    new Card(6, Suit.SPADE), new Card(10, Suit.HEART)
-                };
-            all = ShuffleCards(all);
-            List<Card> commonCards = new List<Card>() { all[0], all[1], all[2], all[3], all[4] };
-            Card[] playerCards1 = new Card[] { all[5], all[6] };
-            Card[] playerCards2 = new Card[] { all[5], all[6] };
+
+            //List<Card> all =
+            //    new List<Card>() { new Card(10, Suit.DIAMOND), new Card(5, Suit.DIAMOND), new Card(6, Suit.DIAMOND), new Card(7, Suit.HEART), new Card(9, Suit.HEART),
+            //        new Card(10, Suit.HEART), new Card(10, Suit.SPADE),
+            //        new Card(4, Suit.DIAMOND), new Card(5, Suit.HEART)
+            //    };
+            ValidateCopairson();
 
         }
 
-        public static void ValidateCopairson(List<Card> commonCards, Card[] playerCards)
+        public static void ValidateCopairson()
         {
             int total = 0;
+            int ocurrence = 0;
             while (true)
             {
+                List<Card> deck = new List<Card>();
+                foreach (Suit suit in Enum.GetValues(typeof(Suit)))
+                {
+                    for (int i = 1; i <= 13; i++)
+                        deck.Add(new Card(i, suit));
+                }
+                deck = ShuffleCards(deck);
+                List<Card> all = new List<Card>() { deck[0], deck[1], deck[2], deck[3], deck[4],
+            deck[5],deck[6],
+            deck[7],deck[8],};
+
+
+
+                List<Card> commonCards = new List<Card>() { all[0], all[1], all[2], all[3], all[4] };
+                Card[] playerCards1 = new Card[] { all[5], all[6] };
+                Card[] playerCards2 = new Card[] { all[7], all[8] };
+
+                Player p1 = new Player("p1", "", "", 0, "");
+                Player p2 = new Player("p1", "", "", 0, "");
+                p1.Cards = playerCards1;
+                p2.Cards = playerCards2;
+                p1.Position = 0;
+                p2.Position = 1;
+                p1.GetHighestHand(commonCards);
+                p2.GetHighestHand(commonCards);
+
+                if (p1.BestHand.handType == HandType.ROYAL_FLUSH && p2.BestHand.handType == HandType.STRAIGHT_FLUSH)
+                {
+                    List<int> bestHand = GetBestHandPlayerPosition(new Player[] { p1, p2 });
+                    if (bestHand[0] == 0)
+                    {
+                        ocurrence++;
+                    } else
+                    {
+                        Console.WriteLine("FALHOU DEPOIS DE > " + total);
+                        Console.ReadKey();
+                    }
+                }
                 total++;
-                Hand hand = HandVerification.GetBestHand(playerCards, commonCards);
-                if (hand.handType != HandType.HIGH_CARD)
-                {
-                    Console.WriteLine("FALHOU DEPOIS DE > " + total + " DEU " + hand.handType);
-                    Console.WriteLine("COMMON CARDS");
-                    foreach (var card in commonCards)
-                    {
-                        Console.WriteLine(card.ToString());
-                    }
-                    Console.WriteLine("PLAYER CARDS");
-                    foreach (var card in playerCards)
-                    {
-                        Console.WriteLine(card.ToString());
-                    }
-                    Console.ReadKey();
-                }
-                else
-                {
-                    Console.WriteLine("OK > " + total);
-                }
+                Console.WriteLine("OK > " + total);
+
 
                 if (total == 1000000)
                 {
-                    Console.WriteLine("RODOU 1 MILHAO DE VEZES E NAO FALHOU");
+                    Console.WriteLine("RODOU 1 MILHAO DE VEZES E NAO FALHOU, TOTAL DE OCORRENCIAS : " + ocurrence);
                     Console.ReadKey();
                     break;
                 }
             }
         }
 
-        public static void ValidateHands(List<Card> commonCards,Card[] playerCards)
+        public static void ValidateHands(List<Card> all)
         {
+            List<Card> commonCards = new List<Card>() { all[0], all[1], all[2], all[3], all[4] };
+            Card[] playerCards = new Card[] { all[5], all[6] };
             int total = 0;
             while (true)
             {
@@ -121,15 +142,17 @@ namespace ConsoleApp1
                 if (auxHand.handType == HandType.FLUSH)
                 {
                     finalHand = auxHand;
-                    auxHand = StraightFlush(playerCards, boardCards);
-                    if (auxHand.handType == HandType.STRAIGHT_FLUSH)
+                    auxHand = RoyalFush(playerCards, boardCards);
+                    if (auxHand.handType == HandType.ROYAL_FLUSH)
                     {
                         finalHand = auxHand;
-                        auxHand = RoyalFush(playerCards, boardCards);
-                        if (auxHand.handType == HandType.ROYAL_FLUSH)
+                    }
+                    else
+                    {
+                        auxHand = StraightFlush(playerCards, boardCards);
+                        if (auxHand.handType == HandType.STRAIGHT_FLUSH)
                         {
                             finalHand = auxHand;
-
                         }
                     }
                 }
@@ -401,9 +424,9 @@ namespace ConsoleApp1
 
                         if (handCards.Count == 5)
                         {
+                            hand.cards = handCards.ToList();
                             if (hasAce)
                             {
-                                hand.cards = handCards.ToList();
                                 Card cardToRemove = null;
                                 foreach (Card card in hand.cards)
                                 {
@@ -574,7 +597,7 @@ namespace ConsoleApp1
 
         }
 
-        public List<int> GetBestHandPlayerPosition(Player[] Players)
+        public static List<int> GetBestHandPlayerPosition(Player[] Players)
         {
             List<int> bestHandsPos = new List<int>();
 
@@ -648,7 +671,7 @@ namespace ConsoleApp1
             return bestHandsPos;
         }
 
-        private List<int> GetPositionsOfHeavyHand(Hand hand1, Hand hand2)
+        private static List<int> GetPositionsOfHeavyHand(Hand hand1, Hand hand2)
         {
             int highest1 = GetHighestValue(hand1.cards);
             int highest2 = GetHighestValue(hand2.cards);
@@ -674,7 +697,7 @@ namespace ConsoleApp1
 
         }
 
-        private int GetHighestValue(List<Card> cards)
+        private static int GetHighestValue(List<Card> cards)
         {
             int max = 0;
             foreach (Card card in cards)
